@@ -15,11 +15,11 @@ use App\Http\Controllers\KidController;
 |
 */
 
-Route::get('/register', function () {
-    return view('register');
-});
+// Route::get('/register', function () {
+//     return view('register');
+// });
 
-
+Route::prefix('api/v1')->group(function () {
 Route::get('/', [RegisterController::class, 'displayAllData']);
 Route::post('/register-user', [RegisterController::class, 'register'])->name('register-user');
 Route::post('/login', [RegisterController::class, 'login'])->name('login')->name('login');
@@ -41,7 +41,7 @@ Route::middleware(['check.category:Driver'])->group(function () {
     Route::put('/vehicles/{id}', [addVehicleDetails::class, 'update']);
     Route::delete('/delete-vehicle/{id}', [addVehicleDetails::class, 'destroy'])->name('delete-vehicle');
     Route::get('/all-vehicles', [addVehicleDetails::class, 'index'])->name('all-vehicles');
-    Route::get('/vehicles', [addVehicleDetails::class, 'show']);
+    Route::get('/vehicles', [addVehicleDetails::class, 'show'])->name('vehicles');
 });
 
 // Parent Routes
@@ -50,4 +50,6 @@ Route::middleware(['check.category:Parent'])->group(function () {
     Route::get('/kid/{userId}', [KidController::class, 'getKidsByUserId']);
     Route::put('/kid/{kidId}', [KidController::class, 'update']);
     Route::delete('/delete-kid/{kidId}', [KidController::class, 'delete']);
+});
+
 });

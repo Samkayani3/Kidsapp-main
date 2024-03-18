@@ -107,7 +107,25 @@ public function update(Request $request, $id)
         }
     }
 
+    public function show(Request $request)
+    {
 
+        // Retrieve the logged-in user based on the bearer token
+        $bearerToken = $request->bearerToken();
+        $user = User::where('jwt_session_token', $bearerToken)->first();
+
+        // Check if the user exists and is a driver
+        if ($user && $user->user_category === 'Driver') {
+            // Retrieve all vehicles associated with the logged-in driver
+            $vehicles = Vehicle::where('user_id', $user->id)->get();
+
+            // Return the vehicles as a response
+            return response()->json($vehicles);
+        } else {
+            // Return an error response if the user is not authenticated or is not a driver
+            return response()->json(['error' => 'User is not authenticated as a driver'], 401);
+        }
+    }
 
 
 }
