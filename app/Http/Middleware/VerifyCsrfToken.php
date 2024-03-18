@@ -15,19 +15,19 @@ class VerifyCsrfToken extends Middleware
     //     //
     // ];
     protected $except = [
-        '/register-user',
-        '/login',
-        '/password-reset-link',
-        '/logout',
-        '/password-update',
-        '/update-profile',
-        '/add-vehicles',
-        '/vehicles/*',
-        '/delete-vehicle/*',
-        '/add-kids',
-        '/kid/*',
-        '/delete-kid/*',
-        '/update-profile/*'
+        '/api/v1/register-user',
+        '/api/v1/login',
+        '/api/v1/password-reset-link',
+        '/api/v1/logout',
+        '/api/v1/password-update',
+        '/api/v1/update-profile',
+        '/api/v1/add-vehicles',
+        '/api/v1/vehicles/*',
+        '/api/v1/delete-vehicle/*',
+        '/api/v1/add-kids',
+        '/api/v1/kid/*',
+        '/api/v1/delete-kid/*',
+        '/api/v1/update-profile/*'
         // Add the route you want to exclude here
     ];
 }
