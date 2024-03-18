@@ -114,26 +114,21 @@ public function login(Request $request)
     return response()->json(compact('token', 'user_category'));
 }
 
-    // Logout
+
     public function logout(Request $request)
     {
-         $email = $request->input('email');
-            if(!Auth::user()){
-            $user = User::where('email', $email)->first();
-            }
-            else{
-            $user = Auth::user();
-            }
-           if ($user) {
-        $user = User::find($user->id);
-        $user->jwt_session_token = null;
-        $user->save();
-        return response()->json(['message' => 'Successfully logged out']);
+
+        $bearerToken = $request->bearerToken();
+        $user = User::where('jwt_session_token', $bearerToken)->first();
+
+        if ($user) {
+            $user->jwt_session_token = null;
+            $user->save();
+            return response()->json(['message' => 'Successfully logged out']);
+        } else {
+            return response()->json(['error' => 'User not found or not authenticated'], 401);
         }
     }
-
-
-
 
 
     // Send Reset Link Email

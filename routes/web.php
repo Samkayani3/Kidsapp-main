@@ -41,7 +41,7 @@ Route::middleware(['check.category:Driver'])->group(function () {
     Route::put('/vehicles/{id}', [addVehicleDetails::class, 'update']);
     Route::delete('/delete-vehicle/{id}', [addVehicleDetails::class, 'destroy'])->name('delete-vehicle');
     Route::get('/all-vehicles', [addVehicleDetails::class, 'index'])->name('all-vehicles');
-    Route::get('/vehicles/{id}', [addVehicleDetails::class, 'show']);
+    Route::get('/vehicles', [addVehicleDetails::class, 'show']);
 });
 
 // Parent Routes
