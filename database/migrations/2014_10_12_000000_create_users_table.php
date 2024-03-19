@@ -21,6 +21,8 @@ return new class extends Migration
             $table->string('password');
             $table->text('jwt_session_token')->nullable()->change();
             $table->string('user_category')->default('Driver');
+            $table->string('auth_token')->nullable()->change();
+            $table->string('status')->type('int')->nullable()->default(0);
             $table->rememberToken();
             $table->timestamps();
         });

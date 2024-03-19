@@ -16,14 +16,14 @@ class AuthenticatedJWT
      */
     public function handle($request, Closure $next)
 {
-    // try {
-    //     $user = JWTAuth::parseToken()->authenticate();
-    //     if (!$user) {
-    //         throw new UnauthorizedException('User not authenticated');
-    //     }
-    // } catch (JWTException $e) {
-    //     throw new UnauthorizedException('Invalid token');
-    // }
+     try {
+         $user = JWTAuth::parseToken()->authenticate();
+         if (!$user) {
+             throw new UnauthorizedException('User not authenticated');
+         }
+     } catch (JWTException $e) {
+         throw new UnauthorizedException('Invalid token');
+     }
 
     return $next($request);
 }

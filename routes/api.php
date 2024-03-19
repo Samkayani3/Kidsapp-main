@@ -14,16 +14,13 @@ use App\Http\Controllers\Auth\RegisterController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-Route::middleware('auth:api')->get('/login', function (Request $request) {
-    return $request->user();
-});
+Route::group(['middleware' => 'api',    'prefix' => 'v1'], function ($router) {
+    Route::get('/',function() { });
 
-// Route::post('/register-user', [RegisterController::class, 'register'])->name('register-user');
-// Route::put('/users/{id}/update-password', [RegisterController::class, 'updatePassword']);
-// Route::post('/login', [RegisterController::class, 'login']);
-// Route::post('/register', [RegisterController::class, 'register']);
-// Route::post('/refresh-token', [RegisterController::class, 'refresh']);
-// Route::post('/logout', [RegisterController::class, 'logout']);
+    /*********User**********/
+    Route::post('/login', [RegisterController::class, 'login'])->name('login')->name('login');
+    Route::post('/register-user', [RegisterController::class, 'register'])->name('register-user');
+
+
+
+});

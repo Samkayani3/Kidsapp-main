@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Email;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -21,11 +22,11 @@ class RegisterController extends Controller
 {
 
     //DIsplay Data of All users
-    public function displayAllData(Request $request){
-        $users = User::all(); //Fetch all users
-        return response()->json($users, 201);
-        // return view('welcome', compact('users'));
-    }
+//    public function displayAllData(Request $request){
+//        $users = User::all(); //Fetch all users
+//        return response()->json($users, 201);
+//        // return view('welcome', compact('users'));
+//    }
 
     // Register User
     public function register(Request $request)
@@ -42,77 +43,52 @@ class RegisterController extends Controller
         }
 
         $role = $request->input('user_category', 'Driver');
+
+        $auth_token = rand(10000,99999);
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => bcrypt($request->password),
             'user_category' => $role,
+            'auth_token' => $auth_token
         ]);
+
+        $email = new Email();
+        $email->send_user_activation_mail($request->name, $request->email, $auth_token);
 
         $token = JWTAuth::fromUser($user);
         $user->user_category = $request->user_category;
         $user->jwt_session_token = $token;
+
         $user->save();
         return response()->json(['token' => $token], 201);
     }
 
+    public function login(Request $request)
+    {
+        $credentials = $request->only('email', 'password');
 
-//  Login With JWT Auth
+        try {
+            if (! $token = JWTAuth::attempt($credentials)) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
 
+            $user = User::where('email', $request->email)->first();
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
+            }
 
-//     public function login(Request $request)
-// {
-//     $credentials = $request->only('email', 'password');
+            $user_category = $user->user_category;
 
-//     try {
-//         if (! $token = JWTAuth::attempt($credentials)) {
-//             return response()->json(['error' => 'Unauthorized'], 401);
-//         }
-
-//         $user = User::where('email', $request->email)->first();
-//         if (!$user) {
-//             return response()->json(['error' => 'User not found'], 404);
-//         }
-
-//         $user_category = $user->user_category;
-
-//     } catch (JWTException $e) {
-//         return response()->json(['error' => 'Could not create token'], 500);
-//     }
-
-//     User::where('email', $request->email)->update(['jwt_session_token' => $token]);
-
-//     return response()->json(compact('token', 'user_category'));
-// }
-
-
-public function login(Request $request)
-{
-    $credentials = $request->only('email', 'password');
-
-    try {
-        if (! $token = JWTAuth::attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+        } catch (JWTException $e) {
+            return response()->json(['error' => 'Could not create token'], 500);
         }
 
-        $user = User::where('email', $request->email)->first();
-        if (!$user) {
-            return response()->json(['error' => 'User not found'], 404);
-        }
+        User::where('email', $request->email)->update(['jwt_session_token' => $token]);
 
-        $user_category = $user->user_category;
-
-        // Save the token in the bearer token
-        $request->headers->set('Authorization', 'Bearer ' . $token);
-
-    } catch (JWTException $e) {
-        return response()->json(['error' => 'Could not create token'], 500);
+        return response()->json(compact('token', 'user_category'));
     }
-
-    User::where('email', $request->email)->update(['jwt_session_token' => $token]);
-
-    return response()->json(compact('token', 'user_category'));
-}
 
 
     public function logout(Request $request)

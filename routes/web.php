@@ -19,10 +19,9 @@ use App\Http\Controllers\KidController;
 //     return view('register');
 // });
 
-Route::prefix('api/v1')->group(function () {
 Route::get('/', [RegisterController::class, 'displayAllData']);
-Route::post('/register-user', [RegisterController::class, 'register'])->name('register-user');
-Route::post('/login', [RegisterController::class, 'login'])->name('login')->name('login');
+
+
 Route::get('/user-id/{id}', [RegisterController::class, 'getUser']);
 Route::post('/logout', [RegisterController::class, 'logout']);
 Route::post('password-reset-link', [RegisterController::class, 'sendResetLinkEmail'])->name('password-reset-link');
@@ -50,6 +49,4 @@ Route::middleware(['check.category:Parent'])->group(function () {
     Route::get('/kid/{userId}', [KidController::class, 'getKidsByUserId']);
     Route::put('/kid/{kidId}', [KidController::class, 'update']);
     Route::delete('/delete-kid/{kidId}', [KidController::class, 'delete']);
-});
-
 });
