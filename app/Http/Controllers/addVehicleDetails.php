@@ -109,7 +109,6 @@ public function update(Request $request, $id)
 
     public function show(Request $request)
     {
-
         // Retrieve the logged-in user based on the bearer token
         $bearerToken = $request->bearerToken();
         $user = User::where('jwt_session_token', $bearerToken)->first();
@@ -118,7 +117,6 @@ public function update(Request $request, $id)
         if ($user && $user->user_category === 'Driver') {
             // Retrieve all vehicles associated with the logged-in driver
             $vehicles = Vehicle::where('user_id', $user->id)->get();
-
             // Return the vehicles as a response
             return response()->json($vehicles);
         } else {

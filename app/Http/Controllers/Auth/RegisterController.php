@@ -195,9 +195,9 @@ public function login(Request $request)
     }
 
     $validator = Validator::make($request->all(), [
-        'name' => 'required|string|max:255',
-        // 'email' => 'required|string|email|max:255|unique:users,email,',
-        'password' => 'nullable|string|min:8|confirmed',
+        'name' => 'sometimes|required|string|max:255',
+        'email' => 'sometimes|required|string|email|max:255|unique:users,email,',
+        'password' => 'sometimes|nullable|string|min:8|confirmed',
     ]);
 
     if ($validator->fails()) {
