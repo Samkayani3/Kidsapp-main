@@ -14,13 +14,10 @@ class addVehicleDetails extends Controller
     public function index()
     {
         try {
-            // Fetch all vehicles from the database
             $vehicles = Vehicle::all();
-
-            // Return the vehicles as a JSON response
             return response()->json($vehicles, 200);
-        } catch (\Exception $e) {
-            // Handle any errors or exceptions
+        }
+        catch (\Exception $e) {
             return response()->json(['error' => 'Failed to fetch vehicles'], 500);
         }
     }
@@ -48,12 +45,9 @@ public function store(Request $request)
         return response()->json(['error' => 'A vehicle is already registered for this Driver'], 400);
     }
 
-    if(auth()->id()){
-        $userId = auth()->id();
-    }
-    else{
-         $userId = $request['user_id'];
-    }
+    $jwtToken = $request->bearerToken(); // Extract JWT token from Authorization header
+
+        $userId = User::where('jwt_session_token', $jwtToken)->first();
     $vehicle = new Vehicle();
     $vehicle->make = $request['make'];
     $vehicle->model = $request['model'];
@@ -81,9 +75,7 @@ public function update(Request $request, $id)
         ]);
 
         $vehicle->fill($validatedData);
-
         $vehicle->save();
-
         return response()->json(['message' => 'Vehicle updated successfully', 'data' => $vehicle], 200);
     }
 
@@ -91,7 +83,6 @@ public function update(Request $request, $id)
     public function destroy($id)
     {
         try {
-
             if($id){
                 $vehicle = Vehicle::findOrFail($id);
             }
@@ -109,18 +100,12 @@ public function update(Request $request, $id)
 
     public function show(Request $request)
     {
-        // Retrieve the logged-in user based on the bearer token
         $bearerToken = $request->bearerToken();
         $user = User::where('jwt_session_token', $bearerToken)->first();
-
-        // Check if the user exists and is a driver
         if ($user && $user->user_category === 'Driver') {
-            // Retrieve all vehicles associated with the logged-in driver
             $vehicles = Vehicle::where('user_id', $user->id)->get();
-            // Return the vehicles as a response
             return response()->json($vehicles);
         } else {
-            // Return an error response if the user is not authenticated or is not a driver
             return response()->json(['error' => 'User is not authenticated as a driver'], 401);
         }
     }

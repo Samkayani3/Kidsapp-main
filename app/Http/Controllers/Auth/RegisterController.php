@@ -21,12 +21,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class RegisterController extends Controller
 {
 
-    //DIsplay Data of All users
-//    public function displayAllData(Request $request){
-//        $users = User::all(); //Fetch all users
-//        return response()->json($users, 201);
-//        // return view('welcome', compact('users'));
-//    }
+    // DIsplay Data of All users
+   public function displayAllData(Request $request){
+       $users = User::all(); //Fetch all users
+       return response()->json($users, 201);
+       // return view('welcome', compact('users'));
+   }
 
     // Register User
     public function register(Request $request)
@@ -51,7 +51,7 @@ class RegisterController extends Controller
             'email' => $request->email,
             'password' => bcrypt($request->password),
             'user_category' => $role,
-            'auth_token' => $auth_token
+            'auth_token' => $auth_token,
         ]);
 
         $email = new Email();
@@ -60,7 +60,7 @@ class RegisterController extends Controller
         $token = JWTAuth::fromUser($user);
         $user->user_category = $request->user_category;
         $user->jwt_session_token = $token;
-
+        $user->status = 0;
         $user->save();
         return response()->json(['token' => $token], 201);
     }
@@ -156,16 +156,9 @@ class RegisterController extends Controller
     // Update User Profile
     public function updateProfile(Request $request)
     {
-    $userId = Auth::id();
+        $jwtToken = $request->bearerToken(); // Extract JWT token from Authorization header
 
-    if($userId){
-        $user = User::where('email', $request->input('email'))
-                ->where('id', $userId)
-                ->first();
-    }
-    else{
-        $user = User::where('email', $request->input('email'))->first();
-    }
+        $user = User::where('jwt_session_token', $jwtToken)->first();
     if (!$user) {
         return response()->json(['error' => 'User not found'], 404);
     }

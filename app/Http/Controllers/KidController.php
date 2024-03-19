@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Validator;
 
 use Illuminate\Http\Request;
 use App\Models\Kid;
+use App\Models\User;
 
 class KidController extends Controller
 {
@@ -16,10 +17,17 @@ class KidController extends Controller
         return response()->json(['message' => 'Kid details added successfully'], 200);
     }
 
-    public function getKidsByUserId($userId)
+    public function getKidsByUserId(Request $request)
     {
-        $kids = Kid::where('user_id', $userId)->get();
+        $jwtToken = $request->bearerToken(); // Extract JWT token from Authorization header
+
+        $user = User::where('jwt_session_token', $jwtToken)->first();
+        $kids = Kid::where('user_id', $user->id)->get(); // Retrieve kids associated with the user ID
+        if ($kids->isEmpty()) {
+            return response()->json(['message' => 'No kids found for this user']);
+        }
         return response()->json($kids);
+
     }
 
 

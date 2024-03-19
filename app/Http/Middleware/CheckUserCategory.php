@@ -17,15 +17,11 @@ class CheckUserCategory
      */
     public function handle($request, Closure $next, $category)
     {
-        if(auth()->id()){
-            $userId = auth()->id();
-        }
-        else{
-        $userId = $request->user_id;
-        }
-        $user = User::find($userId);
+        $jwtToken = $request->bearerToken(); // Extract JWT token from Authorization header
 
+        $user = User::where('jwt_session_token', $jwtToken)->first();
         if ($user) {
+
             if ($user->user_category === $category) {
                 return $next($request);
             } else {

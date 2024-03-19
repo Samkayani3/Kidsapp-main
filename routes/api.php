@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\addVehicleDetails;
+use App\Http\Controllers\KidController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -15,12 +17,45 @@ use App\Http\Controllers\Auth\RegisterController;
 */
 
 Route::group(['middleware' => 'api',    'prefix' => 'v1'], function ($router) {
-    Route::get('/',function() { });
+    Route::get('/', function () {
+    });
 
     /*********User**********/
     Route::post('/login', [RegisterController::class, 'login'])->name('login')->name('login');
     Route::post('/register-user', [RegisterController::class, 'register'])->name('register-user');
 
+    // Route::group(['middleware' => 'check.status'], function () {
+
+        Route::middleware('jwt.token')->group(function () {
+
+        Route::get('/', [RegisterController::class, 'displayAllData']);
+        Route::get('/user-id/{id}', [RegisterController::class, 'getUser']);
+        Route::post('/logout', [RegisterController::class, 'logout']);
+        Route::post('password-reset-link', [RegisterController::class, 'sendResetLinkEmail'])->name('password-reset-link');
+
+        // Route for password reset form
+        Route::get('password-reset-form/{token}', [RegisterController::class, 'showResetForm'])->name('password-reset-form');
+        Route::post('password-update', [RegisterController::class, 'reset'])->name('password-update');
+
+        // Route For update profile
+        Route::put('update-profile', [RegisterController::class, 'updateProfile'])->name('update-profile');
 
 
+        Route::middleware(['check.category:Driver'])->group(function () {
+            Route::post('/add-vehicles', [addVehicleDetails::class, 'store'])->name('add-vehicles');
+            Route::put('/vehicles/{id}', [addVehicleDetails::class, 'update']);
+            Route::delete('/delete-vehicle/{id}', [addVehicleDetails::class, 'destroy'])->name('delete-vehicle');
+            Route::get('/all-vehicles', [addVehicleDetails::class, 'index'])->name('all-vehicles');
+            Route::get('/vehicles', [addVehicleDetails::class, 'show'])->name('vehicles');
+        });
+
+        // Parent Routes
+        Route::middleware(['check.category:Parent'])->group(function () {
+            Route::post('/add-kids', [KidController::class, 'store'])->name('add-kids');
+            Route::get('/kids', [KidController::class, 'getKidsByUserId']);
+            Route::put('/kid/{kidId}', [KidController::class, 'update']);
+            Route::delete('/delete-kid/{kidId}', [KidController::class, 'delete']);
+        });
+    });
 });
+// });
