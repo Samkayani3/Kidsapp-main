@@ -188,4 +188,38 @@ class RegisterController extends Controller
     return response()->json(['message' => 'Profile updated successfully'], 200);
     }
 
+
+    public function otpMatch(Request $request)
+    {
+        // Validate request data
+        $request->validate([
+            'otp' => 'required|numeric',
+        ]);
+
+        // Extract the entered OTP from the request
+        $enteredOTP = $request->otp;
+
+        // Get the authenticated user
+        $jwtToken = $request->bearerToken(); // Extract JWT token from Authorization header
+
+        $user = User::where('jwt_session_token', $jwtToken)->first();
+    if (!$user) {
+        return response()->json(['error' => 'User not found'], 404);
+    }
+
+        // Check if the user exists and the OTP matches
+        if ($user && $user->auth_token === $enteredOTP) {
+            // Update the user's status from 0 to 1
+            // $user->update(['status' => 1]);
+            $user->status = 1;
+            $user->save();
+
+            // Return a success message
+            return response()->json(['message' => 'OTP matched. Status updated successfully.']);
+        } else {
+            // Return an error message for wrong OTP
+            return response()->json(['error' => 'Wrong OTP code.'], 400);
+        }
+    }
+
 }

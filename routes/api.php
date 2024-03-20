@@ -23,8 +23,8 @@ Route::group(['middleware' => 'api',    'prefix' => 'v1'], function ($router) {
     /*********User**********/
     Route::post('/login', [RegisterController::class, 'login'])->name('login')->name('login');
     Route::post('/register-user', [RegisterController::class, 'register'])->name('register-user');
+    Route::post('/enter-otp',[RegisterController::class, 'otpMatch'])->name('enter-otp');
 
-    // Route::group(['middleware' => 'check.status'], function () {
 
         Route::middleware('jwt.token')->group(function () {
 
@@ -58,4 +58,4 @@ Route::group(['middleware' => 'api',    'prefix' => 'v1'], function ($router) {
         });
     });
 });
-// });
+
