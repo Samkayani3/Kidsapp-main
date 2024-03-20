@@ -73,13 +73,12 @@ class Email extends Model
         $this->send();
     }
 
-    public function send_user_reset_mail($mail, $token) {
-
+    public function send_user_reset_mail($mail, $url) {
         $this->to($mail);
         $this->subject('Reset Password');
         $this->body = view('emails/reset-email-link', [
             'display_email' => $mail,
-            'reset_url' => $token,
+            'reset_url' => $url,
         ]);
 
         $this->send();

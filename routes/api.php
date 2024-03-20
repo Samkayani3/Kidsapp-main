@@ -23,18 +23,19 @@ Route::group(['middleware' => 'api',    'prefix' => 'v1'], function ($router) {
     /*********User**********/
     Route::post('/login', [RegisterController::class, 'login'])->name('login')->name('login');
     Route::post('/register-user', [RegisterController::class, 'register'])->name('register-user');
-    Route::post('/enter-otp',[RegisterController::class, 'otpMatch'])->name('enter-otp');
+    Route::post('/enter-otp', [RegisterController::class, 'otpMatch'])->name('enter-otp');
+
+    Route::post('password-reset-email', [RegisterController::class, 'sendResetLinkEmail'])->name('password.email');
+    Route::get('password-reset-form/{id}', [RegisterController::class, 'showResetForm'])->name('password.reset');
+    Route::post('password-update/{id}', [RegisterController::class, 'reset'])->name('password.update');
 
 
-        Route::middleware('jwt.token')->group(function () {
+    Route::middleware('jwt.token')->group(function () {
 
         Route::get('/all-users', [RegisterController::class, 'displayAllData']);
         Route::get('/user-id/{id}', [RegisterController::class, 'getUser']);
         Route::post('/logout', [RegisterController::class, 'logout']);
-        // Password Reset
-        Route::get('password-reset-form', [RegisterController::class, 'showResetForm'])->name('password.reset');
-        Route::post('password-email', [RegisterController::class, 'sendResetLinkEmail'])->name('password.email');
-        Route::post('password-update', [RegisterController::class, 'reset'])->name('password.update');
+
 
         // Route For update profile
         Route::put('update-profile', [RegisterController::class, 'updateProfile'])->name('update-profile');
@@ -57,4 +58,3 @@ Route::group(['middleware' => 'api',    'prefix' => 'v1'], function ($router) {
         });
     });
 });
-

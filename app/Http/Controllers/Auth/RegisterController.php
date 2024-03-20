@@ -114,61 +114,56 @@ class RegisterController extends Controller
     // Send Reset Link Email
     public function sendResetLinkEmail(Request $request)
     {
+        {
+            $request->validate(['email' => 'required|email']);
 
-    $request->validate(['email' => 'required|email']);
+            $user = User::where('email', $request->email)->first();
 
-        $user = User::where('email', $request->email)->first();
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
+            }
 
-        if ($user) {
-            $token = $this->createToken($user); // Assuming createToken is defined in the controller
-            // Send email with the reset token
+            $resetUrl = url('api/v1/password-reset-form/' . $user->id); // Change this to generate the reset URL based on your implementation
             $email = new Email();
-            $email->send_user_reset_mail($user->email, $token);
+            $email->send_user_reset_mail($user->email, $resetUrl);
 
-            return response()->json(['message' => 'Password reset link sent successfully', 'token' => $token]);
-        } else {
-            return response()->json(['error' => 'User not found'], 404);
+            return response()->json(['message' => 'Password reset link sent successfully'], 200);
         }
-
     }
 
     public function createToken(User $user)
     {
-
         return Password::createToken($user);
     }
 
     // Show Reset Form
-    public function showResetForm(Request $request, $token = null)
+    public function showResetForm(Request $request, $userId)
     {
-        return response()->json(['token' => $token, 'email' => $request->email]);
+        $user = User::findOrFail($userId);
+        $email = $user->email;
+        $this->reset($request, $email);
+        return response()->json(['message' => 'Password reset screen']);
     }
 
     // Reset Password
-    public function reset(Request $request)
+    public function reset(Request $request, $email)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'token' => 'required',
-            'password' => 'required|confirmed|min:8',
+
+        $validator = Validator::make($request->all(), [
+            'password' => 'required|string|confirmed|min:8',
         ]);
 
-        $response = Password::reset($request->only(
-            'email',
-            'password',
-            'password_confirmation',
-            'token'
-        ), function ($user, $password) {
-            $user->forceFill([
-                'password' => Hash::make($password)
-            ])->save();
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+        $user = User::where('email', $request->email)->first();
 
-            event(new PasswordReset($user));
-        });
-
-        return $response == Password::PASSWORD_RESET
-            ? response()->json(['message' => __($response)], 200)
-            : response()->json(['error' => __($response)], 400);
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+        $user->password = bcrypt($request->password);
+        $user->save();
+        return response()->json(['message' => 'Password reset successful']);
     }
 
     // Update User Profile
