@@ -22,11 +22,12 @@ class RegisterController extends Controller
 {
 
     // DIsplay Data of All users
-   public function displayAllData(Request $request){
-       $users = User::all(); //Fetch all users
-       return response()->json($users, 201);
-       // return view('welcome', compact('users'));
-   }
+    public function displayAllData(Request $request)
+    {
+        $users = User::all(); //Fetch all users
+        return response()->json($users, 201);
+        // return view('welcome', compact('users'));
+    }
 
     // Register User
     public function register(Request $request)
@@ -44,7 +45,7 @@ class RegisterController extends Controller
 
         $role = $request->input('user_category', 'Driver');
 
-        $auth_token = rand(10000,99999);
+        $auth_token = rand(10000, 99999);
 
         $user = User::create([
             'name' => $request->name,
@@ -68,9 +69,8 @@ class RegisterController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
-
         try {
-            if (! $token = JWTAuth::attempt($credentials)) {
+            if (!$token = JWTAuth::attempt($credentials)) {
                 return response()->json(['error' => 'Unauthorized'], 401);
             }
 
@@ -80,7 +80,6 @@ class RegisterController extends Controller
             }
 
             $user_category = $user->user_category;
-
         } catch (JWTException $e) {
             return response()->json(['error' => 'Could not create token'], 500);
         }
@@ -118,8 +117,8 @@ class RegisterController extends Controller
         );
 
         return $response == Password::RESET_LINK_SENT
-                    ? response()->json(['message' => __($response)], 200)
-                    : response()->json(['error' => __($response)], 400);
+            ? response()->json(['message' => __($response)], 200)
+            : response()->json(['error' => __($response)], 400);
     }
 
     // Show Reset Form
@@ -140,7 +139,10 @@ class RegisterController extends Controller
         ]);
 
         $response = Password::reset($request->only(
-            'email', 'password', 'password_confirmation', 'token'
+            'email',
+            'password',
+            'password_confirmation',
+            'token'
         ), function ($user, $password) {
             $user->forceFill([
                 'password' => Hash::make($password)
@@ -148,8 +150,8 @@ class RegisterController extends Controller
         });
 
         return $response == Password::PASSWORD_RESET
-                    ? response()->json(['message' => __($response)], 200)
-                    : response()->json(['error' => __($response)], 400);
+            ? response()->json(['message' => __($response)], 200)
+            : response()->json(['error' => __($response)], 400);
     }
 
 
@@ -159,67 +161,59 @@ class RegisterController extends Controller
         $jwtToken = $request->bearerToken(); // Extract JWT token from Authorization header
 
         $user = User::where('jwt_session_token', $jwtToken)->first();
-    if (!$user) {
-        return response()->json(['error' => 'User not found'], 404);
-    }
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
 
-    $validator = Validator::make($request->all(), [
-        'name' => 'sometimes|required|string|max:255',
-        'email' => 'sometimes|required|string|email|max:255|unique:users,email,',
-        'password' => 'sometimes|nullable|string|min:8|confirmed',
-    ]);
+        $validator = Validator::make($request->all(), [
+            'name' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|string|email|max:255|unique:users,email,',
+            'password' => 'sometimes|nullable|string|min:8|confirmed',
+        ]);
 
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 422);
-    }
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
 
-    if ($request->filled('name')) {
-        $user->name = $request->input('name');
-    }
-    if ($request->filled('email')) {
-        $user->email = $request->input('email');
-    }
-    if ($request->filled('password')) {
-        $user->password = Hash::make($request->input('password'));
-    }
+        if ($request->filled('name')) {
+            $user->name = $request->input('name');
+        }
+        if ($request->filled('email')) {
+            $user->email = $request->input('email');
+        }
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->input('password'));
+        }
 
-    $user->save();
+        $user->save();
 
-    return response()->json(['message' => 'Profile updated successfully'], 200);
+        return response()->json(['message' => 'Profile updated successfully'], 200);
     }
 
 
     public function otpMatch(Request $request)
     {
-        // Validate request data
+
         $request->validate([
             'otp' => 'required|numeric',
         ]);
-
-        // Extract the entered OTP from the request
         $enteredOTP = $request->otp;
-
-        // Get the authenticated user
-        $jwtToken = $request->bearerToken(); // Extract JWT token from Authorization header
+        $jwtToken = $request->bearerToken();
 
         $user = User::where('jwt_session_token', $jwtToken)->first();
-    if (!$user) {
-        return response()->json(['error' => 'User not found'], 404);
-    }
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
 
-        // Check if the user exists and the OTP matches
         if ($user && $user->auth_token === $enteredOTP) {
-            // Update the user's status from 0 to 1
-            // $user->update(['status' => 1]);
+
             $user->status = 1;
             $user->save();
 
-            // Return a success message
             return response()->json(['message' => 'OTP matched. Status updated successfully.']);
         } else {
-            // Return an error message for wrong OTP
+
             return response()->json(['error' => 'Wrong OTP code.'], 400);
         }
     }
-
 }
