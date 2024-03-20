@@ -63,12 +63,23 @@ class Email extends Model
     }
 
     public function send_user_activation_mail($name, $mail, $auth_token) {
-
         $this->to($mail);
         $this->subject('Account activation');
         $this->body = view('emails/register-activation-code',[
             'display_name' => $name,
             'auth_token' => $auth_token
+        ]);
+
+        $this->send();
+    }
+
+    public function send_user_reset_mail($mail, $token) {
+
+        $this->to($mail);
+        $this->subject('Reset Password');
+        $this->body = view('emails/reset-email-link', [
+            'display_email' => $mail,
+            'reset_url' => $token,
         ]);
 
         $this->send();

@@ -16,6 +16,11 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ResetPasswordEmail;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Facades\URL;
+
 
 
 class RegisterController extends Controller
@@ -69,6 +74,7 @@ class RegisterController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
+
         try {
             if (!$token = JWTAuth::attempt($credentials)) {
                 return response()->json(['error' => 'Unauthorized'], 401);
@@ -92,7 +98,6 @@ class RegisterController extends Controller
 
     public function logout(Request $request)
     {
-
         $bearerToken = $request->bearerToken();
         $user = User::where('jwt_session_token', $bearerToken)->first();
 
@@ -110,32 +115,42 @@ class RegisterController extends Controller
     public function sendResetLinkEmail(Request $request)
     {
 
-        $request->validate(['email' => 'required|email']);
+    $request->validate(['email' => 'required|email']);
 
-        $response = Password::sendResetLink(
-            $request->only('email')
-        );
+        $user = User::where('email', $request->email)->first();
 
-        return $response == Password::RESET_LINK_SENT
-            ? response()->json(['message' => __($response)], 200)
-            : response()->json(['error' => __($response)], 400);
+        if ($user) {
+            $token = $this->createToken($user); // Assuming createToken is defined in the controller
+            // Send email with the reset token
+            $email = new Email();
+            $email->send_user_reset_mail($user->email, $token);
+
+            return response()->json(['message' => 'Password reset link sent successfully', 'token' => $token]);
+        } else {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+    }
+
+    public function createToken(User $user)
+    {
+
+        return Password::createToken($user);
     }
 
     // Show Reset Form
     public function showResetForm(Request $request, $token = null)
     {
         return response()->json(['token' => $token, 'email' => $request->email]);
-        // return response()->json(['email' => $request->email]);
     }
 
-    // Reset/Update Password
-
+    // Reset Password
     public function reset(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
             'token' => 'required',
-            'password' => 'required|confirmed|min:8|confirmed',
+            'password' => 'required|confirmed|min:8',
         ]);
 
         $response = Password::reset($request->only(
@@ -147,13 +162,14 @@ class RegisterController extends Controller
             $user->forceFill([
                 'password' => Hash::make($password)
             ])->save();
+
+            event(new PasswordReset($user));
         });
 
         return $response == Password::PASSWORD_RESET
             ? response()->json(['message' => __($response)], 200)
             : response()->json(['error' => __($response)], 400);
     }
-
 
     // Update User Profile
     public function updateProfile(Request $request)

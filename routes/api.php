@@ -31,11 +31,10 @@ Route::group(['middleware' => 'api',    'prefix' => 'v1'], function ($router) {
         Route::get('/all-users', [RegisterController::class, 'displayAllData']);
         Route::get('/user-id/{id}', [RegisterController::class, 'getUser']);
         Route::post('/logout', [RegisterController::class, 'logout']);
-        Route::post('password-reset-link', [RegisterController::class, 'sendResetLinkEmail'])->name('password-reset-link');
-
-        // Route for password reset form
-        Route::get('password-reset-form/{token}', [RegisterController::class, 'showResetForm'])->name('password-reset-form');
-        Route::post('password-update', [RegisterController::class, 'reset'])->name('password-update');
+        // Password Reset
+        Route::get('password-reset-form', [RegisterController::class, 'showResetForm'])->name('password.reset');
+        Route::post('password-email', [RegisterController::class, 'sendResetLinkEmail'])->name('password.email');
+        Route::post('password-update', [RegisterController::class, 'reset'])->name('password.update');
 
         // Route For update profile
         Route::put('update-profile', [RegisterController::class, 'updateProfile'])->name('update-profile');
