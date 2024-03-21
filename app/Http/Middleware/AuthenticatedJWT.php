@@ -3,7 +3,12 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+// use JWTAuth;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Facades\JWTAuth;
+
 
 class AuthenticatedJWT
 {
@@ -19,10 +24,11 @@ class AuthenticatedJWT
      try {
          $user = JWTAuth::parseToken()->authenticate();
          if (!$user) {
-             throw new UnauthorizedException('User not authenticated');
+            return response()->json(['message' => 'User not authenticated']);
          }
      } catch (JWTException $e) {
-         throw new UnauthorizedException('Invalid token');
+        //  throw new UnauthorizedException('Invalid token');
+        return response()->json(['message' => 'Invalid Token']);
      }
 
     return $next($request);

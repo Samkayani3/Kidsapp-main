@@ -7,15 +7,32 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use App\Models\Kid;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class KidController extends Controller
 {
     public function store(Request $request)
     {
-        $kid = new Kid();
-        $kid->fill($request->all());
-        $kid->save();
-        return response()->json(['message' => 'Kid details added successfully'], 200);
+
+        $jwtToken = $request->bearerToken(); // Extract JWT token from Authorization header
+
+        $user = User::where('jwt_session_token', $jwtToken)->first();
+
+        if ($user) {
+
+            $kid = new Kid();
+
+            $kid->fill($request->all());
+
+            $kid->user_id = $user->id;
+
+            $kid->save();
+
+            return response()->json(['message' => 'Kid details added successfully'], 200);
+        } else {
+
+            return response()->json(['message' => 'Unauthorized']);
+        }
     }
 
     public function getKidsByUserId(Request $request)
@@ -41,20 +58,20 @@ class KidController extends Controller
 
     public function delete(Request $request, $kidId)
     {
-        $jwtToken = $request->bearerToken(); // Extract JWT token from Authorization header
 
+        $jwtToken = $request->bearerToken();
         $user = User::where('jwt_session_token', $jwtToken)->first();
 
         if (!$user) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        // Find the kid belonging to the authenticated user
-        $kid = Kid::where('user_id', $user->id)->findOrFail($kidId);
-
-        // Delete the kid
-        $kid->delete();
-
-        return response()->json(['message' => 'Kid deleted successfully']);
+        try {
+            $kid = Kid::where('user_id', $user->id)->findOrFail($kidId);
+            $kid->delete();
+            return response()->json(['message' => 'Kid deleted successfully']);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Kid not found for this user'], 404);
+        }
     }
 }

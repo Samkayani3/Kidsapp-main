@@ -66,5 +66,6 @@ class Kernel extends HttpKernel
         'check.category' => \App\Http\Middleware\CheckUserCategory::class,
         'check.status' => \App\Http\Middleware\CheckUserStatus::class,
         'jwt.token' => \App\Http\Middleware\JwtSessionTokenMiddleware::class,
+        'admin' => \App\Http\Middleware\AdminMiddleware::class,
     ];
 }

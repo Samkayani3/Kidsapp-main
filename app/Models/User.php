@@ -38,6 +38,10 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
+    public function category()
+    {
+        return $this->belongsTo(UserCategory::class, 'id');
+    }
 
     /**
      * The attributes that should be hidden for serialization.

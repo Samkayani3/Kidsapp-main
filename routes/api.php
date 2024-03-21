@@ -29,11 +29,11 @@ Route::group(['middleware' => 'api',    'prefix' => 'v1'], function ($router) {
     Route::get('password-reset-form/{id}', [RegisterController::class, 'showResetForm'])->name('password.reset');
     Route::post('password-update/{id}', [RegisterController::class, 'reset'])->name('password.update');
 
+    Route::get('/all-users', [RegisterController::class, 'displayAllData'])->middleware('admin');
+    Route::get('/user-details/{id}', [RegisterController::class, 'getUser'])->middleware('admin');
+
 
     Route::middleware('jwt.token')->group(function () {
-
-        Route::get('/all-users', [RegisterController::class, 'displayAllData']);
-        Route::get('/user-details/{id}', [RegisterController::class, 'getUser']);
         Route::post('/logout', [RegisterController::class, 'logout']);
 
 

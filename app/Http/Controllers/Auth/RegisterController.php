@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\ResetPasswordEmail;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\URL;
+use App\Models\UserCategory;
+use Illuminate\Support\Facades\DB;
 
 
 
@@ -47,41 +49,91 @@ class RegisterController extends Controller
 }
 
     // Register User
+    // public function register(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'name' => 'required|string|max:255',
+    //         'email' => 'required|string|email|max:255|unique:users',
+    //         'password' => 'required|string|min:8',
+    //         'user_category' => 'required|in:Driver,Parent',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json(['error' => $validator->errors()], 422);
+    //     }
+
+    //     $role = $request->input('user_category', 'Driver');
+
+    //     $auth_token = rand(10000, 99999);
+
+    //     $user = User::create([
+    //         'name' => $request->name,
+    //         'email' => $request->email,
+    //         'password' => bcrypt($request->password),
+    //         'user_category' => $role,
+    //         'auth_token' => $auth_token,
+    //     ]);
+
+    //     $email = new Email();
+    //     $email->send_user_activation_mail($request->name, $request->email, $auth_token);
+
+    //     $token = JWTAuth::fromUser($user);
+    //     $user->user_category = $request->user_category;
+    //     $user->jwt_session_token = $token;
+    //     $user->status = 0;
+    //     $user->save();
+    //     return response()->json(['token' => $token], 201);
+    // }
+
     public function register(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
-            'user_category' => 'required|in:Driver,Parent',
-        ]);
+{
+    $validator = Validator::make($request->all(), [
+        'name' => 'required|string|max:255',
+        'email' => 'required|string|email|max:255|unique:users',
+        'password' => 'required|string|min:8',
+        'user_category' => 'required|in:Driver,Parent', // Assuming the category names are predefined
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
-
-        $role = $request->input('user_category', 'Driver');
-
-        $auth_token = rand(10000, 99999);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'user_category' => $role,
-            'auth_token' => $auth_token,
-        ]);
-
-        $email = new Email();
-        $email->send_user_activation_mail($request->name, $request->email, $auth_token);
-
-        $token = JWTAuth::fromUser($user);
-        $user->user_category = $request->user_category;
-        $user->jwt_session_token = $token;
-        $user->status = 0;
-        $user->save();
-        return response()->json(['token' => $token], 201);
+    if ($validator->fails()) {
+        return response()->json(['error' => $validator->errors()], 422);
     }
+
+    // Fetch the user category from the database based on the provided category name
+
+    // $category = UserCategory::where('name', $request->input('user_category'))->first();
+    $category = UserCategory::where('name', $request->input('user_category'))->value('name');
+
+
+    if (!$category) {
+        return response()->json(['error' => 'Invalid user category'], 422);
+    }
+
+    // Generate authentication token
+    $auth_token = rand(10000, 99999);
+
+    // Create the user
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => bcrypt($request->password),
+        'user_category' => $category, // Assign the category ID to the user
+        'auth_token' => $auth_token,
+    ]);
+
+    // Send user activation email
+    $email = new Email();
+    $email->send_user_activation_mail($request->name, $request->email, $auth_token);
+
+    // Generate JWT token
+    $token = JWTAuth::fromUser($user);
+
+    // Update user details
+    $user->jwt_session_token = $token;
+    $user->status = 0;
+    $user->save();
+
+    return response()->json(['token' => $token], 201);
+}
 
     public function login(Request $request)
     {
