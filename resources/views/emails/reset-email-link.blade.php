@@ -6,17 +6,12 @@
         background-color: #c80062;
         color: white;
         border: none;
+        font-weight: 700;
         border-radius: 5px;
         cursor: pointer;
     }
 </style>
-<!-- <body>
-    <h3>Password Reset</h3>
-    <p>Email: {{ $display_email }}</p>
-    <p>Reset URL: <a href="{{ $reset_url }}">Click Here</a></p>
-    <p>Thank you!</p>
 
-</body> -->
 <h2>Password Reset</h2>
     <p>Email: <span id="display_email"></span></p>
     <button id="reset_button">Reset Password</button>
