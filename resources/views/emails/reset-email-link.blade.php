@@ -10,12 +10,16 @@
         border-radius: 5px;
         cursor: pointer;
     }
+    body{
+        text-align: center;
+    }
 </style>
 
+<body>
 <h2>Password Reset</h2>
-    <p>Email: <span id="display_email"></span></p>
+    <p >Email: <span id="display_email"></span></p>
     <button id="reset_button">Reset Password</button>
-    <p>Thank you!</p>
+    <p >Thank you!</p>
 
     <script>
         var display_email = "{{ $display_email }}";
@@ -27,4 +31,5 @@
             window.location.href = reset_url;
         });
     </script>
+</body>
 </html>

@@ -153,7 +153,7 @@ class RegisterController extends Controller
         $user = User::findOrFail($userId);
         $email = $user->email;
         $this->reset($request, $email);
-        return response()->json(['message' => 'Password reset screen']);
+        return response()->json(['message' => 'Password reset screen', "Email" => $email]);
     }
 
     // Reset Password
