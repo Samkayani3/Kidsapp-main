@@ -19,18 +19,17 @@ class CheckUserStatus
     public function handle($request, Closure $next)
     {
 
-        $jwtToken = $request->bearerToken(); // Extract JWT token from Authorization header
+        $jwtToken = $request->bearerToken();
 
         if (!$jwtToken) {
             return response()->json(['error' => 'Unauthorized. Token not provided.'], 401);
         }
 
-        // Decode the token to extract the user's ID
         $tokenParts = explode('.', $jwtToken);
         $tokenPayload = json_decode(base64_decode($tokenParts[1]), true);
-        $userId = $tokenPayload['sub']; // Assuming the user ID is stored as 'sub' in the token payload
+        $userId = $tokenPayload['sub'];
 
-        // Find the user based on the extracted user ID
+
         $user = User::find($userId);
 
         if (!$user || $user->jwt_session_token !== $jwtToken) {

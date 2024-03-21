@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\Validator;
 
 use Illuminate\Http\Request;
@@ -27,7 +28,6 @@ class KidController extends Controller
             return response()->json(['message' => 'No kids found for this user']);
         }
         return response()->json($kids);
-
     }
 
 
@@ -43,18 +43,18 @@ class KidController extends Controller
     {
         $jwtToken = $request->bearerToken(); // Extract JWT token from Authorization header
 
-    $user = User::where('jwt_session_token', $jwtToken)->first();
+        $user = User::where('jwt_session_token', $jwtToken)->first();
 
-    if (!$user) {
-        return response()->json(['error' => 'Unauthorized'], 401);
-    }
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
 
-    // Find the kid belonging to the authenticated user
-    $kid = Kid::where('user_id', $user->id)->findOrFail($kidId);
+        // Find the kid belonging to the authenticated user
+        $kid = Kid::where('user_id', $user->id)->findOrFail($kidId);
 
-    // Delete the kid
-    $kid->delete();
+        // Delete the kid
+        $kid->delete();
 
-    return response()->json(['message' => 'Kid deleted successfully']);
+        return response()->json(['message' => 'Kid deleted successfully']);
     }
 }

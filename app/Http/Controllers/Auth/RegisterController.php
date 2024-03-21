@@ -29,10 +29,22 @@ class RegisterController extends Controller
     // DIsplay Data of All users
     public function displayAllData(Request $request)
     {
+
         $users = User::all(); //Fetch all users
+
         return response()->json($users, 201);
         // return view('welcome', compact('users'));
     }
+
+
+    public function getUser($id)
+{
+    // Retrieve the authenticated user
+    $user = User::findOrFail($id);
+
+    // Return the user's data
+    return response()->json($user);
+}
 
     // Register User
     public function register(Request $request)
@@ -113,8 +125,7 @@ class RegisterController extends Controller
 
     // Send Reset Link Email
     public function sendResetLinkEmail(Request $request)
-    {
-        {
+    { {
             $request->validate(['email' => 'required|email']);
 
             $user = User::where('email', $request->email)->first();

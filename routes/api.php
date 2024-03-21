@@ -33,7 +33,7 @@ Route::group(['middleware' => 'api',    'prefix' => 'v1'], function ($router) {
     Route::middleware('jwt.token')->group(function () {
 
         Route::get('/all-users', [RegisterController::class, 'displayAllData']);
-        Route::get('/user-id/{id}', [RegisterController::class, 'getUser']);
+        Route::get('/user-details/{id}', [RegisterController::class, 'getUser']);
         Route::post('/logout', [RegisterController::class, 'logout']);
 
 

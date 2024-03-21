@@ -16,50 +16,35 @@ class addVehicleDetails extends Controller
         try {
             $vehicles = Vehicle::all();
             return response()->json($vehicles, 200);
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to fetch vehicles'], 500);
         }
     }
 
-public function store(Request $request)
-{
-    // Validate the incoming request data
+    public function store(Request $request)
+    {
 
-    // Get the validated data from the validator instance
-    // $validatedData = $validator->validated();
-    // $validator = Validator::make($request->all(), [
-    //     'make' => 'required|string|max:255',
-    //     'model' => 'required|string|max:255',
-    //     'year' => 'required|integer|min:1900|max:' . date('Y'), // Assuming the minimum year is 1900
-    //     'color' => 'require|string|max:255'
-    // ]);
+        $existingVehicle = Vehicle::where('user_id', $request->user_id)->exists();
 
-    // if ($validator->fails()) {
-    //     return response()->json(['error' => $validator->errors()], 422);
-    // }
+        if ($existingVehicle) {
+            return response()->json(['error' => 'A vehicle is already registered for this Driver'], 400);
+        }
 
-    $existingVehicle = Vehicle::where('user_id', $request->user_id)->exists();
-
-    if ($existingVehicle) {
-        return response()->json(['error' => 'A vehicle is already registered for this Driver'], 400);
-    }
-
-    $jwtToken = $request->bearerToken(); // Extract JWT token from Authorization header
+        $jwtToken = $request->bearerToken(); // Extract JWT token from Authorization header
 
         $userId = User::where('jwt_session_token', $jwtToken)->first();
-    $vehicle = new Vehicle();
-    $vehicle->make = $request['make'];
-    $vehicle->model = $request['model'];
-    $vehicle->year = $request['year'];
-    $vehicle->color = $request['color'];
-    $vehicle->user_id = $userId;
+        $vehicle = new Vehicle();
+        $vehicle->make = $request['make'];
+        $vehicle->model = $request['model'];
+        $vehicle->year = $request['year'];
+        $vehicle->color = $request['color'];
+        $vehicle->user_id = $userId;
 
-    $vehicle->save();
-    return response()->json(['message' => 'Vehicle created successfully', 'vehicle' => $vehicle], 201);
-}
+        $vehicle->save();
+        return response()->json(['message' => 'Vehicle created successfully', 'vehicle' => $vehicle], 201);
+    }
 
-public function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $vehicle = Vehicle::find($id);
 
@@ -83,10 +68,9 @@ public function update(Request $request, $id)
     public function destroy($id)
     {
         try {
-            if($id){
+            if ($id) {
                 $vehicle = Vehicle::findOrFail($id);
-            }
-            else{
+            } else {
                 return response()->json(['error' => 'No Vehicle found with this id'], 500);
             }
             $vehicle->delete();
@@ -109,6 +93,4 @@ public function update(Request $request, $id)
             return response()->json(['error' => 'User is not authenticated as a driver'], 401);
         }
     }
-
-
 }
