@@ -187,7 +187,22 @@ class RegisterController extends Controller
         return response()->json(['message' => 'Password reset successful']);
     }
 
+    public function viewProfile(Request $request)
+    {
+        $jwtToken = $request->bearerToken();
+
+        $user = User::where('jwt_session_token', $jwtToken)->first();
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        return response()->json(['data' => $user]);
+    }
+
+
     // Update User Profile
+
+
     public function updateProfile(Request $request)
     {
         $jwtToken = $request->bearerToken();

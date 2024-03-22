@@ -39,6 +39,7 @@ Route::group(['middleware' => 'api',    'prefix' => 'v1'], function ($router) {
 
 
         // Route For update profile
+        Route::get('user-profile', [RegisterController::class, 'viewProfile'])->name('user-profile');
         Route::put('update-profile', [RegisterController::class, 'updateProfile'])->name('update-profile');
 
 
