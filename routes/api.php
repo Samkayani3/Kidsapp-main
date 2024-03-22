@@ -31,6 +31,7 @@ Route::group(['middleware' => 'api',    'prefix' => 'v1'], function ($router) {
 
     Route::get('/all-users', [RegisterController::class, 'displayAllData'])->middleware('admin');
     Route::get('/user-details/{id}', [RegisterController::class, 'getUser'])->middleware('admin');
+    Route::post('/create-user-category', [RegisterController::class, 'createUserCategory'])->name('user-categories.create')->middleware('admin');
 
 
     Route::middleware('jwt.token')->group(function () {

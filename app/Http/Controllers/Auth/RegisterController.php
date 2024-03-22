@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
-// use Validator;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Session;
@@ -28,62 +27,24 @@ use Illuminate\Support\Facades\DB;
 class RegisterController extends Controller
 {
 
-    // DIsplay Data of All users
+    // Display Data of All users
     public function displayAllData(Request $request)
     {
 
-        $users = User::all(); //Fetch all users
+        $users = User::all();
 
         return response()->json($users, 201);
-        // return view('welcome', compact('users'));
     }
 
 
     public function getUser($id)
 {
-    // Retrieve the authenticated user
-    $user = User::findOrFail($id);
 
-    // Return the user's data
+    $user = User::findOrFail($id);
     return response()->json($user);
 }
 
     // Register User
-    // public function register(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'name' => 'required|string|max:255',
-    //         'email' => 'required|string|email|max:255|unique:users',
-    //         'password' => 'required|string|min:8',
-    //         'user_category' => 'required|in:Driver,Parent',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json(['error' => $validator->errors()], 422);
-    //     }
-
-    //     $role = $request->input('user_category', 'Driver');
-
-    //     $auth_token = rand(10000, 99999);
-
-    //     $user = User::create([
-    //         'name' => $request->name,
-    //         'email' => $request->email,
-    //         'password' => bcrypt($request->password),
-    //         'user_category' => $role,
-    //         'auth_token' => $auth_token,
-    //     ]);
-
-    //     $email = new Email();
-    //     $email->send_user_activation_mail($request->name, $request->email, $auth_token);
-
-    //     $token = JWTAuth::fromUser($user);
-    //     $user->user_category = $request->user_category;
-    //     $user->jwt_session_token = $token;
-    //     $user->status = 0;
-    //     $user->save();
-    //     return response()->json(['token' => $token], 201);
-    // }
 
     public function register(Request $request)
 {
@@ -91,16 +52,13 @@ class RegisterController extends Controller
         'name' => 'required|string|max:255',
         'email' => 'required|string|email|max:255|unique:users',
         'password' => 'required|string|min:8',
-        'user_category' => 'required|in:Driver,Parent', // Assuming the category names are predefined
+        'user_category' => 'required|in:Driver,Parent',
     ]);
 
     if ($validator->fails()) {
         return response()->json(['error' => $validator->errors()], 422);
     }
 
-    // Fetch the user category from the database based on the provided category name
-
-    // $category = UserCategory::where('name', $request->input('user_category'))->first();
     $category = UserCategory::where('name', $request->input('user_category'))->value('name');
 
 
@@ -116,7 +74,7 @@ class RegisterController extends Controller
         'name' => $request->name,
         'email' => $request->email,
         'password' => bcrypt($request->password),
-        'user_category' => $category, // Assign the category ID to the user
+        'user_category' => $category,
         'auth_token' => $auth_token,
     ]);
 
@@ -186,7 +144,7 @@ class RegisterController extends Controller
                 return response()->json(['error' => 'User not found'], 404);
             }
 
-            $resetUrl = url('api/v1/password-reset-form/' . $user->id); // Change this to generate the reset URL based on your implementation
+            $resetUrl = url('api/v1/password-reset-form/' . $user->id);
             $email = new Email();
             $email->send_user_reset_mail($user->email, $resetUrl);
 
@@ -232,7 +190,7 @@ class RegisterController extends Controller
     // Update User Profile
     public function updateProfile(Request $request)
     {
-        $jwtToken = $request->bearerToken(); // Extract JWT token from Authorization header
+        $jwtToken = $request->bearerToken();
 
         $user = User::where('jwt_session_token', $jwtToken)->first();
         if (!$user) {
@@ -289,5 +247,23 @@ class RegisterController extends Controller
 
             return response()->json(['error' => 'Wrong OTP code.'], 400);
         }
+    }
+
+
+
+    public function createUserCategory(Request $request)
+    {
+
+        $request->validate([
+            'name' => 'required|string|unique:user_category',
+            // Add more validation rules as needed
+        ]);
+
+            $userCategory = UserCategory::create([
+                'name' => $request->name,
+            ]);
+
+
+            return response()->json(['message' => 'User category created successfully', 'data' => $userCategory], 201);
     }
 }

@@ -9,6 +9,7 @@ class UserCategory extends Model
 {
     use HasFactory;
     protected $table = 'user_category';
+    public $timestamps = false;
 
     protected $fillable = [
         'name',
