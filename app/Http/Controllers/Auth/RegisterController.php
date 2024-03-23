@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -49,18 +50,24 @@ class RegisterController extends Controller
     public function register(Request $request)
 {
     $validator = Validator::make($request->all(), [
-        'name' => 'required|string|max:255',
+        'first_name' => 'required|string|max:255',
+        'last_name' => 'required|string|max:255',
         'email' => 'required|string|email|max:255|unique:users',
         'password' => 'required|string|min:8',
-        'user_category' => 'required',
+        'user_category' => 'required|int',
+        'gender' => 'required|in:male,female,other',
+        'cnic' => 'required|int|digits:13',
+        'mobile' => 'required|min:11|max:12',
+        'telephone' => 'required|min:9|max:12',
+        'nationality' => 'required|int',
+        'country' => 'required|int'
     ]);
 
     if ($validator->fails()) {
         return response()->json(['error' => $validator->errors()], 422);
     }
 
-    $category = UserCategory::where('name', $request->input('user_category'))->value('name');
-
+    $category = UserCategory::where('id', $request->user_category)->value('name');
 
     if (!$category) {
         return response()->json(['error' => 'Invalid user category'], 422);
@@ -69,42 +76,52 @@ class RegisterController extends Controller
     // Generate authentication token
     $auth_token = rand(10000, 99999);
 
-    // Create the user
-    $user = User::create([
-        'name' => $request->name,
+    $data = [
+        'first_name' => $request->first_name,
+        'last_name' => $request->last_name,
         'email' => $request->email,
         'password' => bcrypt($request->password),
         'user_category' => $category,
+        'gender' => $request->gender,
+        'cnic' => $request->cnic,
+        'mobile' => $request->mobile,
+        'telephone' => $request->telephone,
+        'religion' => $request->religion,
+        'nationality' => $request->nationality,
+        'country' => $request->country,
         'auth_token' => $auth_token,
-    ]);
+    ];
+
+    // Create the user
+    $user = User::create($data);
 
     // Send user activation email
     $email = new Email();
-    $email->send_user_activation_mail($request->name, $request->email, $auth_token);
-
-    // Generate JWT token
-    $token = JWTAuth::fromUser($user);
+    $email->send_user_activation_mail($request->first_name.' '.$request->last_name, $request->email, $auth_token);
 
     // Update user details
-    $user->jwt_session_token = $token;
-    $user->status = 0;
+    $user->status = 2;
     $user->save();
 
-    return response()->json(['token' => $token], 201);
+    return response()->json(['message' => trans('response.register_success'), 'success'=>1], 201);
 }
 
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
-
         try {
             if (!$token = JWTAuth::attempt($credentials)) {
                 return response()->json(['error' => 'Unauthorized'], 401);
             }
 
             $user = User::where('email', $request->email)->first();
+
             if (!$user) {
-                return response()->json(['error' => 'User not found'], 404);
+                return response()->json(['message' => trans('response.user_not_found'), 'success'=>0], 404);
+            }
+
+            if($user->status !== 1) {
+                return response()->json(['message' => trans('response.user_not_active'), 'success'=>0], 404);
             }
 
             $user_category = $user->user_category;
@@ -128,7 +145,7 @@ class RegisterController extends Controller
             $user->save();
             return response()->json(['message' => 'Successfully logged out']);
         } else {
-            return response()->json(['error' => 'User not found or not authenticated'], 401);
+            return response()->json(['message' => trans('response.user_not_found'), 'success'=>0], 401);
         }
     }
 
@@ -141,7 +158,7 @@ class RegisterController extends Controller
             $user = User::where('email', $request->email)->first();
 
             if (!$user) {
-                return response()->json(['error' => 'User not found'], 404);
+                return response()->json(['message' => trans('response.user_not_found'), 'success'=>0], 404);
             }
 
             $resetUrl = url('api/v1/password-reset-form/' . $user->id);
@@ -180,7 +197,7 @@ class RegisterController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
-            return response()->json(['error' => 'User not found'], 404);
+            return response()->json(['message' => trans('response.user_not_found'), 'success'=>0], 404);
         }
         $user->password = bcrypt($request->password);
         $user->save();
@@ -193,7 +210,7 @@ class RegisterController extends Controller
 
         $user = User::where('jwt_session_token', $jwtToken)->first();
         if (!$user) {
-            return response()->json(['error' => 'User not found'], 404);
+            return response()->json(['message' => trans('response.user_not_found'), 'success'=>0], 404);
         }
 
         return response()->json(['data' => $user]);
@@ -202,14 +219,13 @@ class RegisterController extends Controller
 
     // Update User Profile
 
-
     public function updateProfile(Request $request)
     {
         $jwtToken = $request->bearerToken();
 
         $user = User::where('jwt_session_token', $jwtToken)->first();
         if (!$user) {
-            return response()->json(['error' => 'User not found'], 404);
+            return response()->json(['message' => trans('response.user_not_found'), 'success'=>0], 404);
         }
 
         $validator = Validator::make($request->all(), [
@@ -237,41 +253,45 @@ class RegisterController extends Controller
         return response()->json(['message' => 'Profile updated successfully'], 200);
     }
 
-
     public function otpMatch(Request $request)
     {
 
-        $request->validate([
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email',
             'otp' => 'required|numeric',
         ]);
-        $enteredOTP = $request->otp;
-        $jwtToken = $request->bearerToken();
 
-        $user = User::where('jwt_session_token', $jwtToken)->first();
-        if (!$user) {
-            return response()->json(['error' => 'User not found'], 404);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        if ($user && $user->auth_token === $enteredOTP) {
+        $enteredOTP = $request->otp;
+        $email = $request->email;
 
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => trans('response.user_not_found'), 'success'=>0], 404);
+        }
+
+        if ($user->status == 1) {
+            return response()->json(['message' => trans('response.user_already_active'), 'success'=>0], 404);
+        }
+
+        if ($user->auth_token === $enteredOTP) {
             $user->status = 1;
             $user->save();
-
-            return response()->json(['message' => 'OTP matched. Status updated successfully.']);
+            return response()->json(['message' => trans('response.otp_matched'), 'success'=>1]);
         } else {
-
-            return response()->json(['error' => 'Wrong OTP code.'], 400);
+            return response()->json(['message' => trans('response.otp_not_matched'), 'success'=>0], 400);
         }
     }
-
-
 
     public function createUserCategory(Request $request)
     {
 
         $request->validate([
-            'name' => 'required|string|unique:user_category',
-            // Add more validation rules as needed
+            'name' => 'required|string|unique:user_category'
         ]);
 
             $userCategory = UserCategory::create([

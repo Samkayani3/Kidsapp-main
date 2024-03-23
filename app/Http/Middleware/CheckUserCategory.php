@@ -28,7 +28,7 @@ class CheckUserCategory
                 return response()->json(['error' => 'Unauthorized. You do not have permission to access this resource.']);
             }
         } else {
-            return response()->json(['error' => 'User not found.']);
+            return response()->json(['message' => trans('response.user_not_found'), 'success'=>0]);
         }
     }
 }

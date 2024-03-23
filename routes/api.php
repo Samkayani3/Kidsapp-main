@@ -37,12 +37,9 @@ Route::group(['middleware' => 'api',    'prefix' => 'v1'], function ($router) {
     Route::middleware('jwt.token')->group(function () {
         Route::post('/logout', [RegisterController::class, 'logout']);
 
-
         // Route For update profile
         Route::get('user-profile', [RegisterController::class, 'viewProfile'])->name('user-profile');
         Route::put('update-profile', [RegisterController::class, 'updateProfile'])->name('update-profile');
-
-
         Route::middleware(['check.category:Driver'])->group(function () {
             Route::post('/add-vehicles', [addVehicleDetails::class, 'store'])->name('add-vehicles');
             Route::put('/vehicles/{id}', [addVehicleDetails::class, 'update']);

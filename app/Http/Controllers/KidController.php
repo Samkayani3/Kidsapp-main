@@ -13,7 +13,6 @@ class KidController extends Controller
 {
     public function store(Request $request)
     {
-
         $jwtToken = $request->bearerToken(); // Extract JWT token from Authorization header
 
         $user = User::where('jwt_session_token', $jwtToken)->first();
@@ -28,10 +27,10 @@ class KidController extends Controller
 
             $kid->save();
 
-            return response()->json(['message' => 'Kid details added successfully'], 200);
+            return response()->json(['message' => trans('response.kid_profile_add_success'), 'success'=>true], 200);
         } else {
 
-            return response()->json(['message' => 'Unauthorized']);
+            return response()->json(['message' => trans('response.err_unauthorized'), 'success'=>false]);
         }
     }
 
